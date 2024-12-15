@@ -35,7 +35,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true) // Updated: Initial isLoading to true
   const [error, setError] = useState(null)
 
-  const calculateTargetFCT = (blockHeight) => {
+  const calculateTargetFCT = (blockHeight: number) => {
     const halvingPeriod = Math.floor(blockHeight / BLOCKS_PER_HALVING)
     return Math.floor(INITIAL_TARGET_FCT / Math.pow(2, halvingPeriod))
   }
