@@ -234,19 +234,19 @@ export default function Home() {
       <CollapsibleSection title="Issuance Halving Progression">
         <div className="space-y-6">
         <p className="text-sm">
-                At launch, Facet targets an average issuance of <b><span className="text-primary">{(data.halving.currentTarget / 10000).toLocaleString()} FCT  
-                per block</span></b> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To regulate this target issuance, 
+                At launch, Facet targets an average issuance of <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{(data.halving.currentTarget / 10000).toLocaleString()} FCT  
+                per block</span> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To regulate this target issuance, 
                 Facet employs a dynamically-adjusted issuance rate that updates with each new Adjustment Period. This approach, inspired by Bitcoin’s adaptive 
                 difficulty model, ensures that FCT issuance remains predictable and aligned with network demand.
               </p>
               <p className="text-sm">
                 To regulate total supply, target FCT issuance undergoes an annual halving (every 2.63M blocks), reducing the issuance target by half. 
                 This mechanism serves to de-risk early adoption by issuing more FCT in the earlier years. With this model, effecitvely half of the FCT 
-                that will ever exist will be issued during the year 1 of the protocol (similar to bitcoin's model). Total supply will converge towards 
-                210M FCT, with 99%+ issued by end of year 7.
+                that will ever exist will be issued during the year 1 of the protocol. Total supply will converge towards 210M FCT, with 99%+ issued by 
+                the end of year 7.
               </p>
               <div className="grid gap-2 text-sm">
-                <div>When the current Halving period ends, the next issuance target will be <b><span className="text-primary">{(data.halving.nextTarget / 10000).toLocaleString()} FCT per Block</span></b>.</div>
+                <div>When the current Halving period ends, the next issuance target will be <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{(data.halving.nextTarget / 10000).toLocaleString()} FCT per Block</span>.</div>
               </div>
           <ProgressBar
             value={data.halving.currentBlock - data.halving.startBlock}
@@ -256,7 +256,7 @@ export default function Home() {
             sublabel={`End Block: ${data.halving.endBlock?.toLocaleString() ?? 'N/A'}`}
           />
           <div className="grid gap-1 text-sm">
-            <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <b><span className="text-primary">{data.halving.currentBlock?.toLocaleString() ?? 'N/A'}</span></b> ({(((data.halving.currentBlock ?? 0) - (data.halving.startBlock ?? 0)) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
+            <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.halving.currentBlock?.toLocaleString() ?? 'N/A'}</span> ({(((data.halving.currentBlock ?? 0) - (data.halving.startBlock ?? 0)) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
             <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.halving.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.halving.blocksRemaining ?? 0) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function Home() {
 
       <CollapsibleSection title="Adjustment Period Progression">
       <p className="text-sm">
-                At the end of the current Adjustment Period, a new FCT issuance rate will be dynamically applied.
+                At the end of the current Adjustment Period, a new FCT issuance rate (see section below) will be dynamically applied.
               </p>
         <ProgressBar
           value={data.adjustmentPeriod.blocksElapsed ?? 0}
@@ -274,16 +274,15 @@ export default function Home() {
           sublabel={`End Block: ${data.adjustmentPeriod.endBlock?.toLocaleString() ?? 'N/A'}`}
         />
         <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <b><span className="text-primary">{data.adjustmentPeriod.currentBlock?.toLocaleString() ?? 'N/A'}</span></b> ({((data.adjustmentPeriod.blocksElapsed ?? 0) / 10000 * 100).toFixed(1)}%)</div>
+          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.adjustmentPeriod.currentBlock?.toLocaleString() ?? 'N/A'}</span> ({((data.adjustmentPeriod.blocksElapsed ?? 0) / 10000 * 100).toFixed(1)}%)</div>
           <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.adjustmentPeriod.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.adjustmentPeriod.blocksRemaining ?? 0) / 10000 * 100).toFixed(1)}%)</div>
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="FCT Issuance Rate (Current Period)">
+      <CollapsibleSection title="FCT Issuance (Current Period)">
       <p className="text-sm">
-                FCT is issued according to the size (in bytes) of the payload (calldata) in the Facet transaction's Ethereum envelope transaction (e.g., the regular Ethereum transaction containing the Facet payload). For every calldata
-                gas unit consumed on L1, Facet issues an amount of FCT per below:
-              </p>
+                Facet transactions are sent as regular Ethereum transactions. The amount of FCT issued to the sender is based on the size of the 
+                L1 transaction's calldata. For every calldata gas unit burned on L1, Facet issues an amount of FCT per the current issuance rate below:              </p>
         <ProgressBar
           value={data.issuance.current ?? 0}
           max={MAX_MINT_RATE}
@@ -291,11 +290,15 @@ export default function Home() {
           sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
         />
         <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current FCT Issuance Rate: <b><span className="text-primary">{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span></b>per calldata gas unit</div>
+          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current FCT Issuance Rate: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span>per calldata gas unit</div>
         </div>
-      </CollapsibleSection>
 
-      <CollapsibleSection title="FCT Issuance (Current Period)">
+        <p className="text-sm">
+                The issuance rate above remains constant from block-to-block within an Adjustment Period, dynamically updating at the onset of a new 
+                Adjustment Period (i.e., every 10K blocks). If total FCT issuance exceeds the current Adjustment Period's target, the issuance rate will 
+                decrease in the next Adjustment Period. If issuance falls short of target, the issuance rate will increase. You can track the current 
+                Adjustment Period's issuance trend below and the forecast for the next Adjustment Period in the next section.
+              </p>
         <IssuanceProgress
           target={data.issuance.target ?? 0}
           issued={data.issuance.issued ?? 0}
@@ -303,7 +306,7 @@ export default function Home() {
         />
       </CollapsibleSection>
 
-      <CollapsibleSection title="Forecasted Issuance Rate (Next Period)">
+      <CollapsibleSection title="Forecasted Issuance (Next Period)">
         <div className="space-y-4">
         <p className="text-sm">
                 The FCT Issuance Rate dynamically adjusts every 10K blocks (Adjustment Period) based on Actual FCT Issuance relative 
