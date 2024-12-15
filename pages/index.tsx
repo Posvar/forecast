@@ -30,10 +30,37 @@ const ABI = [
   }
 ]
 
+// Define the interface for the data structure
+interface ForecastData {
+  halving: {
+    currentBlock: number
+    endBlock: number
+    blocksRemaining: number
+    currentTarget: number
+    nextTarget: number
+  }
+  adjustmentPeriod: {
+    current: number
+    startBlock: number
+    endBlock: number
+    blocksElapsed: number
+    blocksRemaining: number
+    currentBlock: number
+  }
+  issuance: {
+    current: number
+    target: number
+    issued: number
+    forecasted: number
+    forecastedRate: number
+    changePercent: number
+  }
+}
+
 export default function Home() {
-  const [data, setData] = useState(null)
-  const [isLoading, setIsLoading] = useState(true) // Updated: Initial isLoading to true
-  const [error, setError] = useState(null)
+  const [data, setData] = useState<ForecastData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const calculateTargetFCT = (blockHeight: number) => {
     const halvingPeriod = Math.floor(blockHeight / BLOCKS_PER_HALVING)
@@ -112,7 +139,7 @@ export default function Home() {
           endBlock: periodEndBlock,
           blocksElapsed: blocksElapsedInPeriod,
           blocksRemaining,
-          currentBlock: totalBlocks, // Updated: Added currentBlock to adjustmentPeriod
+          currentBlock: totalBlocks,
         },
         issuance: {
           current: currentMintRate,
@@ -225,7 +252,6 @@ export default function Home() {
               value={data.issuance.current}
               max={MAX_MINT_RATE}
               height="h-8"
-              // label={`Current FCT Issuance Rate: ${data.issuance.current.toLocaleString()} gwei per Calldata Gas Unit`}
               sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
             />
             <div className="mt-2 grid gap-1 text-sm">
@@ -255,7 +281,6 @@ export default function Home() {
                 value={data.issuance.forecastedRate}
                 max={MAX_MINT_RATE}
                 height="h-8"
-                // label={`Forecasted FCT Issuance Rate: ${data.issuance.forecastedRate.toLocaleString()} gwei per Calldata Gas Unit`}
                 sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
                 indicatorColor="bg-violet-400"
               />
