@@ -37,7 +37,7 @@ export function IssuanceProgress({
           />
         </ProgressPrimitive.Root>
         <div className="text-sm">
-        <span style={{ color: 'rgb(209, 213, 219)' }}>■</span> FCT Issuance Target: {target.toLocaleString()} FCT per Adjustment Period
+        <span style={{ color: 'rgb(209, 213, 219)' }}>■</span> FCT Issuance Target: <b>{target.toLocaleString()} FCT</b> per Adjustment Period
         </div>
       </div>
 
@@ -60,10 +60,10 @@ export function IssuanceProgress({
         </div>
         <div className="space-y-1 text-sm">
           <div>
-          <span style={{ color: 'rgb(46, 5, 230)' }}>■</span> FCT Issued: {issued.toLocaleString()} FCT ({issuedVsTarget.toFixed(1)}% of Target)
+          <span style={{ color: 'rgb(46, 5, 230)' }}>■</span> FCT Issued: <b><span className="text-primary">{issued.toLocaleString()} FCT</span></b> ({issuedVsTarget.toFixed(1)}% of Target)
           </div>
           <div>
-          <span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted FCT: {forecasted.toLocaleString()} FCT ({forecastedVsTarget.toFixed(1)}% of Target)
+          <span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted FCT: <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{forecasted.toLocaleString()} FCT</span> ({forecastedVsTarget.toFixed(1)}% of Target)
           </div>
         </div>
       </div>

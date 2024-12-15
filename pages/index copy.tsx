@@ -37,7 +37,6 @@ const ABI = [
 interface ForecastData {
   halving: {
     currentBlock: number
-    startBlock: number
     endBlock: number
     blocksRemaining: number
     currentTarget: number
@@ -128,15 +127,12 @@ export default function Home() {
 
       const changeInMintRatePercent = ((forecastedMintRate - currentMintRate) / currentMintRate) * 100
       const halvingPeriod = Math.floor(totalBlocks / BLOCKS_PER_HALVING)
-      const halvingStartBlock = halvingPeriod * BLOCKS_PER_HALVING
-      const halvingEndBlock = (halvingPeriod + 1) * BLOCKS_PER_HALVING - 1
 
       setData({
         halving: {
           currentBlock: totalBlocks,
-          startBlock: halvingStartBlock,
-          endBlock: halvingEndBlock,
-          blocksRemaining: halvingEndBlock - totalBlocks + 1,
+          endBlock: (halvingPeriod + 1) * BLOCKS_PER_HALVING,
+          blocksRemaining: ((halvingPeriod + 1) * BLOCKS_PER_HALVING) - totalBlocks,
           currentTarget: targetFCT,
           nextTarget: targetFCT / 2
         },
@@ -192,48 +188,48 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm">
-  <div className="mx-auto max-w-4xl flex items-center justify-between p-4">
-    <Image
-      src="/images/logo.svg"
-      alt="ForeCasT Logo"
-      width={200}
-      height={50}
-      priority
-    />
-    <button
-      onClick={calculateAdjustmentPrediction}
-      disabled={isLoading}
-      className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Refreshing...
-        </>
-      ) : (
-        'Refresh'
-      )}
-    </button>
-  </div>
-</header>
-<div className="mx-auto max-w-4xl space-y-6 pt-4">
-  <CollapsibleSection title="About This Dashboard" defaultExpanded={false}>
-    <p className="text-sm leading-relaxed">
-      This dashboard provides an in-depth view of the data driving token issuance for Facet Protocol's native gas token, Facet Compute Token (FCT). Powered by Facet's innovative gas model, FCT issuance is dynamically regulated based on both Ethereum and Facet network activity, ensuring a secure and fair allocation process with deflationary properties. From target issuance rates and adjustment periods to the halving mechanism, this tool offers clear insights into how FCT is distributed over time.
-    </p>
-    <p className="mt-4 text-sm">
-      Learn more about Facet's gas mechanism in{' '}
-      <Link href="https://docs.facet.org/3.-technical-details/facets-gas-mechanism" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-        Facet Docs
-      </Link>
-      .
-    </p>
-  </CollapsibleSection>
-  {data && (
-    <div className="space-y-6">
-      <CollapsibleSection title="Issuance Halving Progression">
+        <div className="mx-auto max-w-4xl flex items-center justify-between p-4">
+          <Image
+            src="/images/logo.svg"
+            alt="ForeCasT Logo"
+            width={200}
+            height={50}
+            priority
+          />
+          <button
+            onClick={calculateAdjustmentPrediction}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              'Refresh'
+            )}
+          </button>
+        </div>
+      </header>
+      <div className="mx-auto max-w-4xl space-y-6 pt-4">
+        <CollapsibleSection title="About This Dashboard" defaultExpanded={false}>
+          <p className="text-sm leading-relaxed">
+            This dashboard provides an in-depth view of the data driving token issuance for Facet Protocol's native gas token, Facet Compute Token (FCT). Powered by Facet's innovative gas model, FCT issuance is dynamically regulated based on both Ethereum and Facet network activity, ensuring a secure and fair allocation process with deflationary properties. From target issuance rates and adjustment periods to the halving mechanism, this tool offers clear insights into how FCT is distributed over time.
+          </p>
+          <p className="mt-4 text-sm">
+            Learn more about Facet's gas mechanism in{' '}
+            <Link href="https://docs.facet.org/3.-technical-details/facets-gas-mechanism" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+              Facet Docs
+            </Link>
+            .
+          </p>
+        </CollapsibleSection>
         <div className="space-y-6">
-        <p className="text-sm">
+          <CollapsibleSection title="Halving Period Progression">
+            <div className="space-y-6">
+
+            <p className="text-sm">
                 At launch, Facet targets an average issuance of <b><span className="text-primary">{(data.halving.currentTarget / 10000).toLocaleString()} FCT  
                 per block</span></b> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To regulate this target issuance, 
                 Facet employs a dynamically-adjusted issuance rate that updates with each new Adjustment Period. This approach, inspired by Bitcoin’s adaptive 
@@ -245,87 +241,80 @@ export default function Home() {
                 that will ever exist will be issued during the year 1 of the protocol (similar to bitcoin's model). Total supply will converge towards 
                 210M FCT, with 99%+ issued by end of year 7.
               </p>
+
               <div className="grid gap-2 text-sm">
                 <div>When the current Halving period ends, the next issuance target will be <b><span className="text-primary">{(data.halving.nextTarget / 10000).toLocaleString()} FCT per Block</span></b>.</div>
               </div>
-          <ProgressBar
-            value={data.halving.currentBlock - data.halving.startBlock}
-            max={BLOCKS_PER_HALVING}
-            height="h-8"
-            label={`Start Block: ${data.halving.startBlock?.toLocaleString() ?? 'N/A'}`}
-            sublabel={`End Block: ${data.halving.endBlock?.toLocaleString() ?? 'N/A'}`}
-          />
-          <div className="grid gap-1 text-sm">
-            <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <b><span className="text-primary">{data.halving.currentBlock?.toLocaleString() ?? 'N/A'}</span></b> ({(((data.halving.currentBlock ?? 0) - (data.halving.startBlock ?? 0)) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
-            <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.halving.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.halving.blocksRemaining ?? 0) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
-          </div>
-        </div>
-      </CollapsibleSection>
+              <ProgressBar
+                value={data.halving.currentBlock}
+                max={data.halving.endBlock}
+                height="h-8"
+                label={`Start Block: 0`}
+                sublabel={`End Block: ${data.halving.endBlock.toLocaleString()}`}
+              />
+              <div className="grid gap-1 text-sm">
+                <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span className="text-primary">{data.halving.currentBlock.toLocaleString()}</span> ({((data.halving.currentBlock / data.halving.endBlock) * 100).toFixed(1)}%)</div>
+                <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.halving.blocksRemaining.toLocaleString()} ({((data.halving.blocksRemaining / data.halving.endBlock) * 100).toFixed(1)}%)</div>
+              </div>
+            </div>
+          </CollapsibleSection>
 
-      <CollapsibleSection title="Adjustment Period Progression">
-      <p className="text-sm">
-                At the end of the current Adjustment Period, a new FCT issuance rate will be dynamically applied.
-              </p>
-        <ProgressBar
-          value={data.adjustmentPeriod.blocksElapsed ?? 0}
-          max={10000}
-          height="h-8"
-          label={`Start Block: ${data.adjustmentPeriod.startBlock?.toLocaleString() ?? 'N/A'}`}
-          sublabel={`End Block: ${data.adjustmentPeriod.endBlock?.toLocaleString() ?? 'N/A'}`}
-        />
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <b><span className="text-primary">{data.adjustmentPeriod.currentBlock?.toLocaleString() ?? 'N/A'}</span></b> ({((data.adjustmentPeriod.blocksElapsed ?? 0) / 10000 * 100).toFixed(1)}%)</div>
-          <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.adjustmentPeriod.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.adjustmentPeriod.blocksRemaining ?? 0) / 10000 * 100).toFixed(1)}%)</div>
-        </div>
-      </CollapsibleSection>
+          <CollapsibleSection title="Adjustment Period Progression">
+            <ProgressBar
+              value={data.adjustmentPeriod.blocksElapsed}
+              max={10000}
+              height="h-8"
+              label={`Start Block: ${data.adjustmentPeriod.startBlock.toLocaleString()}`}
+              sublabel={`End Block: ${data.adjustmentPeriod.endBlock.toLocaleString()}`}
+            />
+            <div className="mt-2 grid gap-1 text-sm">
+              <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span className="text-primary">{data.adjustmentPeriod.currentBlock.toLocaleString()}</span> ({((data.adjustmentPeriod.blocksElapsed / 10000) * 100).toFixed(1)}%)</div>
+              <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.adjustmentPeriod.blocksRemaining.toLocaleString()} ({((data.adjustmentPeriod.blocksRemaining / 10000) * 100).toFixed(1)}%)</div>
+            </div>
+          </CollapsibleSection>
 
-      <CollapsibleSection title="FCT Issuance Rate (Current Period)">
-      <p className="text-sm">
-                FCT is issued according to the size (in bytes) of the payload (calldata) in the Facet transaction's Ethereum envelope transaction (e.g., the regular Ethereum transaction containing the Facet payload). For every calldata
-                gas unit consumed on L1, Facet issues an amount of FCT per below:
-              </p>
-        <ProgressBar
-          value={data.issuance.current ?? 0}
-          max={MAX_MINT_RATE}
-          height="h-8"
-          sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
-        />
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current FCT Issuance Rate: <b><span className="text-primary">{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span></b>per calldata gas unit</div>
-        </div>
-      </CollapsibleSection>
+          <CollapsibleSection title="FCT Issuance Rate">
+            <ProgressBar
+              value={data.issuance.current}
+              max={MAX_MINT_RATE}
+              height="h-8"
+              sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
+            />
+            <div className="mt-2 grid gap-1 text-sm">
+              <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current FCT Issuance Rate: {data.issuance.current.toLocaleString()} gwei per Calldata Gas Unit</div>
+            </div>
+          </CollapsibleSection>
 
-      <CollapsibleSection title="FCT Issuance (Current Period)">
-        <IssuanceProgress
-          target={data.issuance.target ?? 0}
-          issued={data.issuance.issued ?? 0}
-          forecasted={data.issuance.forecasted ?? 0}
-        />
-      </CollapsibleSection>
+          <CollapsibleSection title="FCT Issuance (Current Adjustment Period)">
+            <IssuanceProgress
+              target={data.issuance.target}
+              issued={data.issuance.issued}
+              forecasted={data.issuance.forecasted}
+            />
+          </CollapsibleSection>
 
-      <CollapsibleSection title="Forecasted Issuance Rate (Next Period)">
-        <div className="space-y-4">
-        <p className="text-sm">
+          <CollapsibleSection title="Predictions for Next Adjustment Period">
+            <div className="space-y-4">
+              <p className="text-sm">
                 The FCT Issuance Rate dynamically adjusts every 10K blocks (Adjustment Period) based on Actual FCT Issuance relative 
                 to Target FCT Issuance. Based on observed FCT Issuance during the current Adjustment Period, the FCT Issuance Rate is 
                 currently forecasted to <b>{data.issuance.changePercent >= 0 ? ' increase' : ' decrease'} by {Math.abs(data.issuance.changePercent).toFixed(1)}% </b> 
                 for the next Adjustment Period. <i>Note: The 10M gwei max rate would only be approached if issuance remains consistently below target for prolonged periods, which is improbable under typical usage scenarios.</i>
               </p>
-          <ProgressBar
-            value={data.issuance.forecastedRate ?? 0}
-            max={MAX_MINT_RATE}
-            height="h-8"
-            sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
-            indicatorColor="bg-violet-400"
-          />
+              <ProgressBar
+                value={data.issuance.forecastedRate}
+                max={MAX_MINT_RATE}
+                height="h-8"
+                sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
+                indicatorColor="bg-violet-400"
+              />
+            </div>
+            <div className="mt-2 grid gap-1 text-sm">
+              <div><span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted FCT Issuance Rate: {data.issuance.forecastedRate.toLocaleString()} gwei per Calldata Gas Unit</div>
+            </div>
+          </CollapsibleSection>
         </div>
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted FCT Issuance Rate: <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{data.issuance.forecastedRate?.toLocaleString() ?? 'N/A'} gwei</span> per calldata gas unit</div>
-        </div>
-      </CollapsibleSection>
-    </div>
-  )}
-</div>
+      </div>
     </div>
   )
 }
