@@ -28,8 +28,8 @@ export function ProgressBar({
     <div className="space-y-2">
       {(label || sublabel) && (
         <div className="flex justify-between text-sm">
-          <div className="text-xs">{label}</div> {/* Change text size for label */}
-          <div className="text-xs">{sublabel}</div> {/* Change text size for sublabel */}
+          <div className="text-xs text-gray-400">{label}</div> {/* Change text size for label */}
+          <div className="text-xs text-gray-400">{sublabel}</div> {/* Change text size for sublabel */}
         </div>
       )}
       <div className="relative">

@@ -197,7 +197,7 @@ export default function Home() {
       src="/images/logo.svg"
       alt="ForeCasT Logo"
       width={200}
-      height={50}
+      height={39}
       priority
     />
     <button
@@ -216,37 +216,37 @@ export default function Home() {
     </button>
   </div>
 </header>
-<div className="mx-auto max-w-4xl space-y-6 pt-4">
+<div className="mx-auto max-w-4xl space-y-2 pt-4">
   <CollapsibleSection title="About This Dashboard" defaultExpanded={false}>
     <p className="text-sm leading-relaxed">
-      This dashboard provides an in-depth view of the data driving token issuance for Facet Protocol's native gas token, Facet Compute Token (FCT). Powered by Facet's innovative gas model, FCT issuance is dynamically regulated based on both Ethereum and Facet network activity, ensuring a secure and fair allocation process with deflationary properties. From target issuance rates and adjustment periods to the halving mechanism, this tool offers clear insights into how FCT is distributed over time.
+      This dashboard provides an in-depth view of the variables driving token issuance for Facet Protocol's native gas token, Facet Compute Token (FCT). 
+      Powered by Facet's innovative gas model, FCT issuance is dynamically regulated based on both Ethereum and Facet network activity, ensuring a secure 
+      and fair allocation process with deflationary properties.
     </p>
     <p className="mt-4 text-sm">
       Learn more about Facet's gas mechanism in{' '}
       <Link href="https://docs.facet.org/3.-technical-details/facets-gas-mechanism" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-        Facet Docs
-      </Link>
-      .
+        Facet Docs</Link>.
     </p>
   </CollapsibleSection>
   {data && (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <CollapsibleSection title="Issuance Halving Progression">
-        <div className="space-y-6">
+        <div className="space-y-2">
         <p className="text-sm">
                 At launch, Facet targets an average issuance of <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{(data.halving.currentTarget / 10000).toLocaleString()} FCT  
-                per block</span> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To regulate this target issuance, 
-                Facet employs a dynamically-adjusted issuance rate that updates with each new Adjustment Period. This approach, inspired by Bitcoin’s adaptive 
-                difficulty model, ensures that FCT issuance remains predictable and aligned with network demand.
+                per block</span> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To maintain this target issuance, 
+                Facet employs a dynamic issuance rate that updates with each new Period. This approach, inspired by Bitcoin’s adaptive difficulty model, ensures 
+                that issuance remains predictable and aligned with network demand.
               </p>
               <p className="text-sm">
-                To regulate total supply, target FCT issuance undergoes an annual halving (every 2.63M blocks), reducing the issuance target by half. 
+                To regulate total supply, issuance undergoes an annual halving (every 2.63M blocks) by reducing the issuance target by half. 
                 This mechanism serves to de-risk early adoption by issuing more FCT in the earlier years. With this model, effecitvely half of the FCT 
                 that will ever exist will be issued during the year 1 of the protocol. Total supply will converge towards 210M FCT, with 99%+ issued by 
                 the end of year 7.
               </p>
               <div className="grid gap-2 text-sm">
-                <div>When the current Halving period ends, the next issuance target will be <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{(data.halving.nextTarget / 10000).toLocaleString()} FCT per Block</span>.</div>
+                <div>When the current Halving period ends, the next issuance target will be <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{(data.halving.nextTarget / 10000).toLocaleString()} FCT per block</span>.</div>
               </div>
           <ProgressBar
             value={data.halving.currentBlock - data.halving.startBlock}
@@ -263,6 +263,7 @@ export default function Home() {
       </CollapsibleSection>
 
       <CollapsibleSection title="Adjustment Period Progression">
+      <div className="space-y-2">
       <p className="text-sm">
                 At the end of the current Adjustment Period, a new FCT issuance rate (see section below) will be dynamically applied.
               </p>
@@ -277,9 +278,11 @@ export default function Home() {
           <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.adjustmentPeriod.currentBlock?.toLocaleString() ?? 'N/A'}</span> ({((data.adjustmentPeriod.blocksElapsed ?? 0) / 10000 * 100).toFixed(1)}%)</div>
           <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.adjustmentPeriod.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.adjustmentPeriod.blocksRemaining ?? 0) / 10000 * 100).toFixed(1)}%)</div>
         </div>
+        </div>
       </CollapsibleSection>
 
       <CollapsibleSection title="FCT Issuance (Current Period)">
+      <div className="space-y-2">
       <p className="text-sm">
                 Facet transactions are sent as regular Ethereum transactions. The amount of FCT issued to the sender is based on the size of the 
                 L1 transaction's calldata. For every calldata gas unit burned on L1, Facet issues an amount of FCT per the current issuance rate below:              </p>
@@ -290,9 +293,9 @@ export default function Home() {
           sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
         />
         <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current FCT Issuance Rate: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span>per calldata gas unit</div>
+          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Issuance Rate: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span>per calldata gas unit</div>
         </div>
-
+        </div>
         <p className="text-sm">
                 The issuance rate above remains constant from block-to-block within an Adjustment Period, dynamically updating at the onset of a new 
                 Adjustment Period (i.e., every 10K blocks). If total FCT issuance exceeds the current Adjustment Period's target, the issuance rate will 
@@ -304,10 +307,11 @@ export default function Home() {
           issued={data.issuance.issued ?? 0}
           forecasted={data.issuance.forecasted ?? 0}
         />
+
       </CollapsibleSection>
 
       <CollapsibleSection title="Forecasted Issuance (Next Period)">
-        <div className="space-y-4">
+        <div className="space-y-2">
         <p className="text-sm">
                 The FCT Issuance Rate dynamically adjusts every 10K blocks (Adjustment Period) based on Actual FCT Issuance relative 
                 to Target FCT Issuance. Based on observed FCT Issuance during the current Adjustment Period, the FCT Issuance Rate is 
@@ -321,9 +325,10 @@ export default function Home() {
             sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
             indicatorColor="bg-violet-400"
           />
-        </div>
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted FCT Issuance Rate: <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{data.issuance.forecastedRate?.toLocaleString() ?? 'N/A'} gwei</span> per calldata gas unit</div>
+        {/* </div>*/}
+        <div className="text-sm">
+          <div><span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted Issuance Rate: <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{data.issuance.forecastedRate?.toLocaleString() ?? 'N/A'} gwei</span> per calldata gas unit</div>
+          </div>
         </div>
       </CollapsibleSection>
     </div>
