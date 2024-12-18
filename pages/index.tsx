@@ -54,6 +54,7 @@ interface ForecastData {
     blocksElapsed: number
     blocksRemaining: number
     currentBlock: number
+    currentTarget: number // Add this line
   }
   issuance: {
     current: number
@@ -199,6 +200,7 @@ export default function Component() {
           startBlock: periodStartBlock,
           endBlock: periodEndBlock,
           blocksElapsed: blocksElapsedInPeriod,
+          currentTarget: targetFCT, // Add this line
           blocksRemaining,
           currentBlock: totalBlocks,
         },

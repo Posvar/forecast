@@ -6,8 +6,8 @@ interface PeriodProgressionProps {
   startBlock: number
   endBlock: number
   currentBlock: number
-  currentTarget: number
   blocksRemaining: number
+  currentTarget: number // Add this line
 }
 
 export function PeriodProgression({
@@ -15,7 +15,7 @@ export function PeriodProgression({
   startBlock,
   endBlock,
   currentBlock,
-  currentTarget,
+  currentTarget, // Add this line
   blocksRemaining
 }: PeriodProgressionProps) {
   return (
