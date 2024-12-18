@@ -199,7 +199,6 @@ export default function Component() {
           startBlock: periodStartBlock,
           endBlock: periodEndBlock,
           blocksElapsed: blocksElapsedInPeriod,
-          currentTarget: targetFCT,
           blocksRemaining,
           currentBlock: totalBlocks,
         },
@@ -210,7 +209,6 @@ export default function Component() {
           forecasted: forecastedIssuance,
           forecastedRate: forecastedMintRate,
           changePercent: changeInMintRatePercent,
-          currentTarget: targetFCT,
           l1Gas,
           miningCostUSD,
           ethPrice
