@@ -14,7 +14,7 @@ interface ProgressBarProps extends React.ComponentPropsWithoutRef<typeof Progres
 export function ProgressBar({
   value,
   max = 100,
-  indicatorColor = "bg-primary",
+  indicatorColor = "bg-[#2E05E6]", // Set default to the original purple color
   height = "h-2",
   label,
   sublabel,

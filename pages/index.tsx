@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Loader2 } from 'lucide-react'
-import { ProgressBar } from '../components/progress-bar'
-import { IssuanceProgress } from '../components/issuance-progress'
-import { CollapsibleSection } from '../components/collapsible-section'
+import { ProgressBar } from '@/components/progress-bar'
+import { IssuanceProgress } from '@/components/issuance-progress'
+import { CollapsibleSection } from '@/components/collapsible-section'
+import { AboutTooltip } from '@/components/about-tooltip'
+import { HalvingProgression } from '@/components/halving-progression'
+import { PeriodProgression } from '@/components/period-progression'
+import { CurrentIssuance } from '@/components/current-issuance'
+import { ForecastedIssuance } from '@/components/forecasted-issuance'
 import Image from 'next/image'
-import Link from 'next/link'
 
 // Constants
 const API_URL_BLOCKS = 'https://explorer.facet.org/api/v2/main-page/blocks'
@@ -14,6 +18,7 @@ const RPC_URL = 'https://mainnet.facet.org/'
 const MAX_MINT_RATE = 10000000
 const INITIAL_TARGET_FCT = 400000
 const BLOCKS_PER_HALVING = 2630000
+const ETHERSCAN_API_KEY = process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY
 
 // ABI
 const ABI = [
@@ -33,7 +38,6 @@ const ABI = [
   }
 ]
 
-// Define the interface for the data structure
 interface ForecastData {
   halving: {
     currentBlock: number
@@ -58,10 +62,13 @@ interface ForecastData {
     forecasted: number
     forecastedRate: number
     changePercent: number
+    l1Gas: number | undefined
+    miningCostUSD: number | undefined
+    ethPrice: number | undefined
   }
 }
 
-export default function Home() {
+export default function Component() {
   const [data, setData] = useState<ForecastData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -77,6 +84,33 @@ export default function Home() {
     const latestBlockHeight = parseInt(data[0]?.height, 10)
     if (isNaN(latestBlockHeight)) throw new Error('Invalid block height')
     return latestBlockHeight
+  }
+
+  const fetchL1GasPrice = async () => {
+    const response = await fetch(`https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=${ETHERSCAN_API_KEY}`)
+    const data = await response.json()
+    if (data.status !== '1') throw new Error('Failed to fetch gas price')
+    return parseFloat(data.result.SafeGasPrice)
+  }
+
+  const fetchEthPrice = async () => {
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+    const data = await response.json()
+    return data.ethereum.usd
+  }
+
+  const calculateMiningCost = (l1Gas: number, issuanceRate: number, ethPrice: number) => {
+    // Convert L1 gas price from gwei to ETH
+    const ethCostPerGas = l1Gas * 1e-9
+    
+    // Convert issuance rate from gwei to FCT
+    const fctPerGas = issuanceRate * 1e-9
+    
+    // Calculate ETH cost per FCT
+    const ethCostPerFCT = ethCostPerGas / fctPerGas
+    
+    // Convert to USD
+    return ethCostPerFCT * ethPrice
   }
 
   const fetchContractData = async () => {
@@ -101,10 +135,30 @@ export default function Home() {
       setIsLoading(true)
       setError(null)
       
-      const totalBlocks = await fetchLatestBlockHeight()
+      const [totalBlocks, contractData] = await Promise.all([
+        fetchLatestBlockHeight(),
+        fetchContractData()
+      ])
+
+      let l1Gas, ethPrice
+      try {
+        [l1Gas, ethPrice] = await Promise.all([
+          fetchL1GasPrice(),
+          fetchEthPrice()
+        ])
+      } catch (error) {
+        console.error('Error fetching L1 gas price or ETH price:', error)
+        l1Gas = undefined
+        ethPrice = undefined
+      }
+
       const targetFCT = calculateTargetFCT(totalBlocks)
-      const contractData = await fetchContractData()
       const { fctMintedSoFar, currentMintRate } = contractData
+
+      // Calculate mining cost
+      const miningCostUSD = l1Gas !== undefined && ethPrice !== undefined
+        ? calculateMiningCost(l1Gas, currentMintRate, ethPrice)
+        : undefined
 
       // Calculate current adjustment period
       const currentPeriod = Math.floor(totalBlocks / 10000) + 1
@@ -145,6 +199,7 @@ export default function Home() {
           startBlock: periodStartBlock,
           endBlock: periodEndBlock,
           blocksElapsed: blocksElapsedInPeriod,
+          currentTarget: targetFCT,
           blocksRemaining,
           currentBlock: totalBlocks,
         },
@@ -154,7 +209,11 @@ export default function Home() {
           issued: fctMintedSoFar,
           forecasted: forecastedIssuance,
           forecastedRate: forecastedMintRate,
-          changePercent: changeInMintRatePercent
+          changePercent: changeInMintRatePercent,
+          currentTarget: targetFCT,
+          l1Gas,
+          miningCostUSD,
+          ethPrice
         }
       })
     } catch (error) {
@@ -192,148 +251,76 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm">
-  <div className="mx-auto max-w-4xl flex items-center justify-between p-4">
-    <Image
-      src="/images/logo.svg"
-      alt="ForeCasT Logo"
-      width={200}
-      height={39}
-      priority
-    />
-    <button
-      onClick={calculateAdjustmentPrediction}
-      disabled={isLoading}
-      className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Refreshing...
-        </>
-      ) : (
-        'Refresh'
-      )}
-    </button>
-  </div>
-</header>
-<div className="mx-auto max-w-4xl space-y-2 pt-4">
-  <CollapsibleSection title="About This Dashboard" defaultExpanded={false}>
-    <p className="text-sm leading-relaxed">
-      This dashboard provides an in-depth view of the variables driving token issuance for Facet Protocol's native gas token, Facet Compute Token (FCT). 
-      Powered by Facet's innovative gas model, FCT issuance is dynamically regulated based on both Ethereum and Facet network activity, ensuring a secure 
-      and fair allocation process with deflationary properties.
-    </p>
-    <p className="mt-4 text-sm">
-      Learn more about Facet's gas mechanism in{' '}
-      <Link href="https://docs.facet.org/3.-technical-details/facets-gas-mechanism" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-        Facet Docs</Link>.
-    </p>
-  </CollapsibleSection>
-  {data && (
-    <div className="space-y-2">
-      <CollapsibleSection title="Issuance Halving Progression">
-        <div className="space-y-2">
-        <p className="text-sm">
-                At launch, Facet targets an average issuance of <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{(data.halving.currentTarget / 10000).toLocaleString()} FCT  
-                per block</span> over 10K block intervals (~1.4 days), known as Adjustment Periods (e.g., 400K FCT per Period). To maintain this target issuance, 
-                Facet employs a dynamic issuance rate that updates with each new Period. This approach, inspired by Bitcoin’s adaptive difficulty model, ensures 
-                that issuance remains predictable and aligned with network demand.
-              </p>
-              <p className="text-sm">
-                To regulate total supply, issuance undergoes an annual halving (every 2.63M blocks) by reducing the issuance target by half. 
-                This mechanism serves to de-risk early adoption by issuing more FCT in the earlier years. With this model, effecitvely half of the FCT 
-                that will ever exist will be issued during the year 1 of the protocol. Total supply will converge towards 210M FCT, with 99%+ issued by 
-                the end of year 7.
-              </p>
-              <div className="grid gap-2 text-sm">
-                <div>When the current Halving period ends, the next issuance target will be <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{(data.halving.nextTarget / 10000).toLocaleString()} FCT per block</span>.</div>
+        <div className="mx-auto max-w-4xl flex items-center justify-between p-4">
+          <div className="flex items-center">
+            <Image
+              src="/images/logo.svg"
+              alt="ForeCasT Logo"
+              width={200}
+              height={39}
+              priority
+            />
+            <AboutTooltip />
+          </div>
+          <button
+            onClick={calculateAdjustmentPrediction}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              'Refresh'
+            )}
+          </button>
+        </div>
+      </header>
+      <div className="mx-auto max-w-4xl space-y-2 pt-4">
+        {data && (
+          <div className="space-y-2">
+            <CollapsibleSection title="Current FCT Issuance">
+              <div className="space-y-4">
+                <CurrentIssuance
+                  current={data.issuance.current}
+                  l1Gas={data.issuance.l1Gas}
+                  miningCostUSD={data.issuance.miningCostUSD}
+                />
+                <p className="text-sm">
+                  The issuance rate above remains constant from block-to-block within an Adjustment Period (10k blocks, or ~1.4 days), dynamically updating
+                  at the onset of the next Adjustment Period. If total FCT issuance exceeds the Adjustment Period's target, the issuance rate will 
+                  decrease in the next Adjustment Period. If issuance falls short of target, the issuance rate will increase. You can track the current 
+                  Adjustment Period's issuance trend below and a forecast for the next Adjustment Period in the next section.
+                </p>
+                <IssuanceProgress
+                  target={data.issuance.target}
+                  issued={data.issuance.issued}
+                  forecasted={data.issuance.forecasted}
+                />
               </div>
-          <ProgressBar
-            value={data.halving.currentBlock - data.halving.startBlock}
-            max={BLOCKS_PER_HALVING}
-            height="h-8"
-            label={`Start Block: ${data.halving.startBlock?.toLocaleString() ?? 'N/A'}`}
-            sublabel={`End Block: ${data.halving.endBlock?.toLocaleString() ?? 'N/A'}`}
-          />
-          <div className="grid gap-1 text-sm">
-            <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.halving.currentBlock?.toLocaleString() ?? 'N/A'}</span> ({(((data.halving.currentBlock ?? 0) - (data.halving.startBlock ?? 0)) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
-            <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.halving.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.halving.blocksRemaining ?? 0) / BLOCKS_PER_HALVING * 100).toFixed(1)}%)</div>
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Forecasted FCT Issuance">
+              <ForecastedIssuance
+                forecastedRate={data.issuance.forecastedRate}
+                l1Gas={data.issuance.l1Gas}
+                ethPrice={data.issuance.ethPrice}
+                changePercent={data.issuance.changePercent}
+              />
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Adjustment Period Progression">
+              <PeriodProgression {...data.adjustmentPeriod} />
+            </CollapsibleSection>
+
+            <CollapsibleSection title="Issuance Halving Progression">
+              <HalvingProgression {...data.halving} />
+            </CollapsibleSection>
           </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Adjustment Period Progression">
-      <div className="space-y-2">
-      <p className="text-sm">
-                At the end of the current Adjustment Period, a new FCT issuance rate (see section below) will be dynamically applied.
-              </p>
-        <ProgressBar
-          value={data.adjustmentPeriod.blocksElapsed ?? 0}
-          max={10000}
-          height="h-8"
-          label={`Start Block: ${data.adjustmentPeriod.startBlock?.toLocaleString() ?? 'N/A'}`}
-          sublabel={`End Block: ${data.adjustmentPeriod.endBlock?.toLocaleString() ?? 'N/A'}`}
-        />
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Block: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.adjustmentPeriod.currentBlock?.toLocaleString() ?? 'N/A'}</span> ({((data.adjustmentPeriod.blocksElapsed ?? 0) / 10000 * 100).toFixed(1)}%)</div>
-          <div><span style={{ color: 'rgb(209, 213, 219)' }}>■</span> Remaining Blocks: {data.adjustmentPeriod.blocksRemaining?.toLocaleString() ?? 'N/A'} ({((data.adjustmentPeriod.blocksRemaining ?? 0) / 10000 * 100).toFixed(1)}%)</div>
-        </div>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection title="FCT Issuance (Current Period)">
-      <div className="space-y-2">
-      <p className="text-sm">
-                Facet transactions are sent as regular Ethereum transactions. The amount of FCT issued to the sender is based on the size of the 
-                L1 transaction's calldata. For every calldata gas unit burned on L1, Facet issues an amount of FCT per the current issuance rate below:              </p>
-        <ProgressBar
-          value={data.issuance.current ?? 0}
-          max={MAX_MINT_RATE}
-          height="h-8"
-          sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
-        />
-        <div className="mt-2 grid gap-1 text-sm">
-          <div><span style={{ color: 'rgb(46, 5, 230)' }}>■</span> Current Issuance Rate: <span style={{ color: 'rgb(46, 5, 230)', fontWeight: 'bold' }}>{data.issuance.current?.toLocaleString() ?? 'N/A'} gwei </span>per calldata gas unit</div>
-        </div>
-        </div>
-        <p className="text-sm">
-                The issuance rate above remains constant from block-to-block within an Adjustment Period, dynamically updating at the onset of a new 
-                Adjustment Period (i.e., every 10K blocks). If total FCT issuance exceeds the current Adjustment Period's target, the issuance rate will 
-                decrease in the next Adjustment Period. If issuance falls short of target, the issuance rate will increase. You can track the current 
-                Adjustment Period's issuance trend below and the forecast for the next Adjustment Period in the next section.
-              </p>
-        <IssuanceProgress
-          target={data.issuance.target ?? 0}
-          issued={data.issuance.issued ?? 0}
-          forecasted={data.issuance.forecasted ?? 0}
-        />
-
-      </CollapsibleSection>
-
-      <CollapsibleSection title="Forecasted Issuance (Next Period)">
-        <div className="space-y-2">
-        <p className="text-sm">
-                The FCT Issuance Rate dynamically adjusts every 10K blocks (Adjustment Period) based on Actual FCT Issuance relative 
-                to Target FCT Issuance. Based on observed FCT Issuance during the current Adjustment Period, the FCT Issuance Rate is 
-                currently forecasted to <b>{data.issuance.changePercent >= 0 ? ' increase' : ' decrease'} by {Math.abs(data.issuance.changePercent).toFixed(1)}% </b> 
-                for the next Adjustment Period. <i>Note: The 10M gwei max rate would only be approached if issuance remains consistently below target for prolonged periods, which is improbable under typical usage scenarios.</i>
-              </p>
-          <ProgressBar
-            value={data.issuance.forecastedRate ?? 0}
-            max={MAX_MINT_RATE}
-            height="h-8"
-            sublabel={`Max: ${MAX_MINT_RATE.toLocaleString()} gwei`}
-            indicatorColor="bg-violet-400"
-          />
-        {/* </div>*/}
-        <div className="text-sm">
-          <div><span style={{ color: 'rgb(167, 139, 250)' }}>■</span> Forecasted Issuance Rate: <span style={{ color: 'rgb(167, 139, 250)', fontWeight: 'bold' }}>{data.issuance.forecastedRate?.toLocaleString() ?? 'N/A'} gwei</span> per calldata gas unit</div>
-          </div>
-        </div>
-      </CollapsibleSection>
-    </div>
-  )}
-</div>
+        )}
+      </div>
     </div>
   )
 }
