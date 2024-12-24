@@ -87,9 +87,9 @@ async function saveDataToAzure(data) {
 async function calculateAdjustmentData(blockNumber) {
     const { fctMintPeriodL1DataGas, fctMintRate } = await fetchContractValues(blockNumber);
 
-    const fctMinted = fctMintPeriodL1DataGas * fctMintRate;
-    const fctMintedGwei = fctMinted / 1e18;
-    const adjustmentFactor = Math.max(0.5, Math.min(2, 400000 / fctMintedGwei));
+    const fctMintedWei = fctMintPeriodL1DataGas * fctMintRate;
+    const fctMinted = fctMintedWei / 1e18; // Convert to FCT
+    const adjustmentFactor = Math.max(0.5, Math.min(2, 400000 / fctMinted));
     const newMintRate = fctMintRate * adjustmentFactor;
     const newMintRateGwei = newMintRate / 1e9;
 
@@ -97,8 +97,8 @@ async function calculateAdjustmentData(blockNumber) {
         "block-ending": blockNumber,
         fctMintPeriodL1DataGas: parseFloat(fctMintPeriodL1DataGas),
         fctMintRate: parseFloat(fctMintRate),
-        fctMinted: parseFloat(fctMinted.toFixed(0)),
-        fctMintedGwei: parseFloat(fctMintedGwei.toFixed(10)),
+        fctMintedWei: parseFloat(fctMintedWei.toFixed(0)),
+        fctMinted: parseFloat(fctMinted.toFixed(10)),
         adjustmentFactor: parseFloat(adjustmentFactor.toFixed(10)),
         newMintRate: parseFloat(newMintRate.toFixed(10)),
         newMintRateGwei: parseFloat(newMintRateGwei.toFixed(10)),
