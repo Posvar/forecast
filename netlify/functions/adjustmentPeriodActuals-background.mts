@@ -73,11 +73,11 @@ async function calculateAdjustmentData(blockNumber) {
         "block-ending": blockNumber,
         fctMintPeriodL1DataGas: parseFloat(fctMintPeriodL1DataGas),
         fctMintRate: parseFloat(fctMintRate),
-        fctMinted,
-        fctMintedGwei,
-        adjustmentFactor,
-        newMintRate,
-        newMintRateGwei
+        fctMinted: parseFloat(fctMinted.toFixed(0)), // Force full decimal notation
+        fctMintedGwei: parseFloat(fctMintedGwei.toFixed(10)), // Optional: adjust precision if needed
+        adjustmentFactor: parseFloat(adjustmentFactor.toFixed(10)),
+        newMintRate: parseFloat(newMintRate.toFixed(10)),
+        newMintRateGwei: parseFloat(newMintRateGwei.toFixed(10))
     };
 }
 
