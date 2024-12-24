@@ -4,3 +4,8 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[functions]]
+  name = "adjustmentPeriodActuals-background"
+  schedule = "0 * * * *" # Trigger at the top of every hour
+  timeout = 26
