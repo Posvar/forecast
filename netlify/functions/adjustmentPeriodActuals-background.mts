@@ -91,27 +91,28 @@ export const handler = async () => {
         const existingData = await loadExistingData();
         const lastProcessedBlock = existingData.length > 0 ? existingData[existingData.length - 1]["block-ending"] : 0;
 
-        // Determine the next block-ending (10K interval)
-        const nextBlockEnding = Math.ceil((lastProcessedBlock + 1) / 10000) * 10000 - 1;
+        // Start iterating from the next block-ending after the last processed one
+        let nextBlockEnding = Math.ceil((lastProcessedBlock + 1) / 10000) * 10000 - 1;
 
-        // Check if the current block height exceeds the next 10K interval
-        if (currentBlockHeight < nextBlockEnding) {
-            console.log(`Next 10K block interval (${nextBlockEnding}) not yet reached.`);
-            return { statusCode: 200, body: JSON.stringify({ message: "No new blocks to process." }) };
+        // Process all overdue 10K blocks
+        while (nextBlockEnding <= currentBlockHeight) {
+            // Check if the block-ending already exists in the JSON file
+            if (existingData.some(entry => entry["block-ending"] === nextBlockEnding)) {
+                console.log(`Block ${nextBlockEnding} already exists in the data. Skipping.`);
+            } else {
+                console.log(`Processing block ${nextBlockEnding}...`);
+                // Fetch and process data for the current 10K block
+                const adjustmentData = await calculateAdjustmentData(nextBlockEnding);
+                existingData.push(adjustmentData);
+                await saveDataToAzure(existingData);
+                console.log(`Processed and saved data for block ${nextBlockEnding}.`);
+            }
+
+            // Move to the next 10K block
+            nextBlockEnding += 10000;
         }
 
-        // Check if the block-ending already exists in the JSON file
-        if (existingData.some(entry => entry["block-ending"] === nextBlockEnding)) {
-            console.log(`Block ${nextBlockEnding} already exists in the data. Skipping.`);
-            return { statusCode: 200, body: JSON.stringify({ message: "Block already processed." }) };
-        }
-
-        // Fetch and process data for the next 10K block
-        const adjustmentData = await calculateAdjustmentData(nextBlockEnding);
-        existingData.push(adjustmentData);
-        await saveDataToAzure(existingData);
-
-        console.log(`Processed and saved data for block ${nextBlockEnding}.`);
+        console.log("All overdue blocks processed.");
         return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
     } catch (error) {
         console.error("Error in handler:", error);
