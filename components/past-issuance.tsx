@@ -28,6 +28,7 @@ const PURPLE = '#2E05E6'; // Define purple color
 export function PastIssuance() {
   const [data, setData] = useState<AdjustmentPeriod[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [activeTooltip, setActiveTooltip] = useState<number | null>(null); // Tracks active tooltip
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,42 +50,50 @@ export function PastIssuance() {
     fetchData();
   }, []);
 
+  const handleTooltipToggle = (index: number) => {
+    setActiveTooltip((prev) => (prev === index ? null : index)); // Toggles tooltip on/off
+  };
+
   const renderBlocks = (blocksPerRow: number) => {
     const numRows = Math.ceil(data.length / blocksPerRow);
 
     return Array.from({ length: numRows }).map((_, rowIndex) => (
       <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
-        {data.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => (
-          <TooltipProvider key={index}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
-                  style={{ backgroundColor: getColor(period.fctMinted) }}
-                >
-                  <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
-                    {(period['block-ending'] - 9999).toLocaleString()}
-                  </div>
-                  <div className={`text-right ${shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}`}>
-                    {period['block-ending'].toLocaleString()}
-                  </div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent
-  side="top"
-  className="bg-white border border-black shadow-lg text-sm rounded p-2"
->
-  <div className="space-y-1">
-    <div>Start Block: {(period['block-ending'] - 9999).toLocaleString()}</div>
-    <div>End Block: {period['block-ending'].toLocaleString()}</div>
-    <div>Issuance Rate: {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
-    <div>FCT Issued: {Math.round(period.fctMinted).toLocaleString()} FCT</div>
-  </div>
-</TooltipContent>
+        {data.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => {
+          const isActive = activeTooltip === index;
 
-            </Tooltip>
-          </TooltipProvider>
-        ))}
+          return (
+            <TooltipProvider key={index}>
+              <Tooltip open={isActive}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
+                    style={{ backgroundColor: getColor(period.fctMinted) }}
+                    onClick={() => handleTooltipToggle(index)} // Handle touch interaction
+                  >
+                    <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
+                      {(period['block-ending'] - 9999).toLocaleString()}
+                    </div>
+                    <div className={`text-right ${shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}`}>
+                      {period['block-ending'].toLocaleString()}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  className="bg-white border border-black shadow-lg text-sm rounded p-2"
+                >
+                  <div className="space-y-1">
+                    <div>Start Block: {(period['block-ending'] - 9999).toLocaleString()}</div>
+                    <div>End Block: {period['block-ending'].toLocaleString()}</div>
+                    <div>Issuance Rate: {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
+                    <div>FCT Issued: {Math.round(period.fctMinted).toLocaleString()} FCT</div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
       </div>
     ));
   };
@@ -96,19 +105,19 @@ export function PastIssuance() {
   return (
     <div className="space-y-6">
       <p className="text-sm">
-        The heatmap below shows FCT issuance for past Adjustment Periods, with lighter shades indicating lower issuance
-        and darker purple shades indicating higher issuance{/*  relative to the target of {TARGET_FCT.toLocaleString()} FCT */}.
+        The heatmap below shows FCT issuance for the most recent Adjustment Periods, with lighter shades indicating lower issuance
+        and darker purple shades indicating higher issuance.
       </p>
       <div className="space-y-1">
         <div className="hidden md:block space-y-1">{renderBlocks(DESKTOP_BLOCKS_PER_ROW)}</div>
         <div className="md:hidden space-y-1">{renderBlocks(MOBILE_BLOCKS_PER_ROW)}</div>
       </div>
-  
-      {/* This is the missing section */}
+
+      {/* Footer Section */}
       <div className="flex flex-col space-y-2">
         <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
           <div
-            className="w-full md:w-auto md:flex-1 h-2 rounded border border-black"
+            className="w-full md:w-auto md:flex-1 h-2 rounded border border-grey"
             style={{
               background: `linear-gradient(to right, ${WHITE}, ${PURPLE})`,
             }}
@@ -116,16 +125,15 @@ export function PastIssuance() {
         </div>
         <div className="flex justify-between text-sm">
           <div className="flex items-center space-x-2">
-            <div className="h-4 w-4 rounded border border-black" style={{ backgroundColor: WHITE }} />
-            <span>Issuance: 0 FCT</span>
+            <div className="h-4 w-4 rounded border border-grey" style={{ backgroundColor: WHITE }} />
+            <span>0 FCT</span>
           </div>
           <div className="flex items-center space-x-2">
+            <span>800K+ FCT</span>
             <div className="h-4 w-4 rounded" style={{ backgroundColor: PURPLE }} />
-            <span>Issuance: 800K+ FCT</span>
           </div>
         </div>
       </div>
     </div>
   );
-  
 }
