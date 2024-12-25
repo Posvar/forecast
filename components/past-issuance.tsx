@@ -71,17 +71,19 @@ export function PastIssuance() {
   }
 
   const renderBlocks = (blocksPerRow: number) => {
-    const numRows = Math.ceil(data.length / blocksPerRow)
+    const numRows = Math.ceil(data.length / blocksPerRow);
+    const gridClass = blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5';
+  
     return Array.from({ length: numRows }).map((_, rowIndex) => (
-      <div key={rowIndex} className={`grid grid-cols-${blocksPerRow} gap-1`}>
+      <div key={rowIndex} className={`grid ${gridClass} gap-1`}>
         {data.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => (
           <TooltipProvider key={index}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]"
-                     style={{ 
-                       backgroundColor: getColor(period.fctMinted),
-                     }}>
+                <div
+                  className="relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]"
+                  style={{ backgroundColor: getColor(period.fctMinted) }}
+                >
                   <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
                     {(period['block-ending'] - 9999).toLocaleString()}
                   </div>
@@ -97,27 +99,36 @@ export function PastIssuance() {
           </TooltipProvider>
         ))}
       </div>
-    ))
-  }
+    ));
+  };  
 
   return (
     <div className="space-y-6">
       <p className="text-sm">
-        The heatmap below shows FCT issuance for past Adjustment Periods, with lighter shades indicating lower issuance 
-        and darker purple shades indicating higher issuance relative to the target of {TARGET_FCT.toLocaleString()} FCT. 
+        The heatmap below shows FCT issuance for past Adjustment Periods, with lighter shades indicating lower issuance
+        and darker purple shades indicating higher issuance relative to the target of {TARGET_FCT.toLocaleString()} FCT.
         Hover over (or tap on mobile) any block to see detailed information.
       </p>
-      
+  
       <div className="space-y-1">
-        <div className="hidden md:block space-y-1">{renderBlocks(DESKTOP_BLOCKS_PER_ROW)}</div>
-        <div className="md:hidden space-y-1">{renderBlocks(MOBILE_BLOCKS_PER_ROW)}</div>
+        {/* Desktop view: Up to 10 columns */}
+        <div className="hidden md:block space-y-1">
+          {renderBlocks(10)}
+        </div>
+        {/* Mobile view: Up to 5 columns */}
+        <div className="md:hidden space-y-1">
+          {renderBlocks(5)}
+        </div>
       </div>
-
+  
       <div className="flex flex-col space-y-2">
         <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
-          <div className="w-full md:w-auto md:flex-1 h-2 rounded border border-black" style={{ 
-            background: `linear-gradient(to right, ${WHITE}, ${PURPLE})` 
-          }} />
+          <div
+            className="w-full md:w-auto md:flex-1 h-2 rounded border border-black"
+            style={{
+              background: `linear-gradient(to right, ${WHITE}, ${PURPLE})`,
+            }}
+          />
         </div>
         <div className="flex justify-between text-sm">
           <div className="flex items-center space-x-2">
@@ -131,5 +142,5 @@ export function PastIssuance() {
         </div>
       </div>
     </div>
-  )
+  );
 }
