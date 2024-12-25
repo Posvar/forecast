@@ -104,7 +104,8 @@ export function PastIssuance() {
     <div className="space-y-6">
       <p className="text-sm">
         The heatmap below shows FCT issuance for past Adjustment Periods, with lighter shades indicating lower issuance 
-        and darker purple shades indicating higher issuance relative to the target of {TARGET_FCT.toLocaleString()} FCT.
+        and darker purple shades indicating higher issuance relative to the target of {TARGET_FCT.toLocaleString()} FCT. 
+        Hover over (or tap on mobile) any block to see detailed information.
       </p>
       
       <div className="space-y-1">
