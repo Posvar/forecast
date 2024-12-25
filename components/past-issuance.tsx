@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@radix-ui/react-tooltip';
 
 interface AdjustmentPeriod {
   'block-ending': number;
@@ -28,7 +27,7 @@ const PURPLE = '#2E05E6';
 export function PastIssuance() {
   const [data, setData] = useState<AdjustmentPeriod[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [activeTooltip, setActiveTooltip] = useState<number | null>(null); // Tracks active tooltip
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Use a unique string key for tooltips
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,8 +49,8 @@ export function PastIssuance() {
     fetchData();
   }, []);
 
-  const handleTooltipToggle = (index: number) => {
-    setActiveTooltip((prev) => (prev === index ? null : index)); // Toggles tooltip on/off
+  const handleTooltipToggle = (key: string) => {
+    setActiveTooltip((prev) => (prev === key ? null : key)); // Toggles tooltip on/off
   };
 
   const renderBlocks = (blocksPerRow: number) => {
@@ -60,14 +59,15 @@ export function PastIssuance() {
     return Array.from({ length: numRows }).map((_, rowIndex) => (
       <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
         {data.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => {
-          const isActive = activeTooltip === index;
+          const key = `${rowIndex}-${index}`; // Unique key for each block
+          const isActive = activeTooltip === key;
 
           return (
-            <div key={index} className="relative">
+            <div key={key} className="relative">
               <div
                 className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
                 style={{ backgroundColor: getColor(period.fctMinted) }}
-                onClick={() => handleTooltipToggle(index)} // Click to toggle tooltip
+                onClick={() => handleTooltipToggle(key)} // Click to toggle tooltip
               >
                 <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
                   {(period['block-ending'] - 9999).toLocaleString()}
@@ -77,12 +77,15 @@ export function PastIssuance() {
                 </div>
               </div>
               {isActive && (
-                <div className="absolute z-10 bg-white border border-black shadow-lg text-sm rounded p-2 top-full mt-1">
-                  <div className="space-y-1">
-                    <div>Start Block: {(period['block-ending'] - 9999).toLocaleString()}</div>
-                    <div>End Block: {period['block-ending'].toLocaleString()}</div>
-                    <div>Issuance Rate: {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
-                    <div>FCT Issued: {Math.round(period.fctMinted).toLocaleString()} FCT</div>
+                <div
+                  className="absolute z-10 bg-white border border-black shadow-lg text-xs rounded p-2 top-[-5rem] left-1/2 transform -translate-x-1/2"
+                  style={{ width: '200px' }} // Fixed width for the tooltip
+                >
+                  <div className="space-y-1 text-center">
+                    <div><b>Start Block:</b> {(period['block-ending'] - 9999).toLocaleString()}</div>
+                    <div><b>End Block:</b> {period['block-ending'].toLocaleString()}</div>
+                    <div><b>Issuance Rate:</b> {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
+                    <div><b>FCT Issued:</b> {Math.round(period.fctMinted).toLocaleString()} FCT</div>
                   </div>
                 </div>
               )}
