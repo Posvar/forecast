@@ -22,8 +22,8 @@ const getColor = (fctMinted: number) => {
   return `rgba(46, 5, 230, ${ratio})`;
 };
 
-const WHITE = '#FFFFFF'; // Define white color
-const PURPLE = '#2E05E6'; // Define purple color
+const WHITE = '#FFFFFF';
+const PURPLE = '#2E05E6';
 
 export function PastIssuance() {
   const [data, setData] = useState<AdjustmentPeriod[]>([]);
@@ -64,7 +64,7 @@ export function PastIssuance() {
 
           return (
             <TooltipProvider key={index}>
-              <Tooltip open={isActive} disableHoverableContent>
+              <Tooltip open={isActive} onOpenChange={() => setActiveTooltip(null)}>
                 <TooltipTrigger asChild>
                   <div
                     className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
