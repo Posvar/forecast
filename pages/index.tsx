@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import { Loader2 } from 'lucide-react'
 import { ProgressBar } from '@/components/progress-bar'
+import { PastIssuance } from '@/components/past-issuance'
 import { IssuanceProgress } from '@/components/issuance-progress'
 import { CollapsibleSection } from '@/components/collapsible-section'
 import { AboutTooltip } from '@/components/about-tooltip'
@@ -288,12 +289,7 @@ export default function Component() {
                   l1Gas={data.issuance.l1Gas}
                   miningCostUSD={data.issuance.miningCostUSD}
                 />
-                <p className="text-sm">
-                  The issuance rate above remains constant from block-to-block within an Adjustment Period (10k blocks, or ~1.4 days), dynamically updating
-                  at the onset of the next Adjustment Period. If total FCT issuance exceeds the Adjustment Period's target, the issuance rate will 
-                  decrease in the next Adjustment Period. If issuance falls short of target, the issuance rate will increase. You can track the current 
-                  Adjustment Period's issuance trend below and a forecast for the next Adjustment Period in the next section.
-                </p>
+  
                 <IssuanceProgress
                   target={data.issuance.target}
                   issued={data.issuance.issued}
@@ -301,7 +297,7 @@ export default function Component() {
                 />
               </div>
             </CollapsibleSection>
-
+  
             <CollapsibleSection title="Forecasted FCT Issuance">
               <ForecastedIssuance
                 forecastedRate={data.issuance.forecastedRate}
@@ -310,11 +306,15 @@ export default function Component() {
                 changePercent={data.issuance.changePercent}
               />
             </CollapsibleSection>
-
+  
+            <CollapsibleSection title="Past FCT Issuance">
+              <PastIssuance />
+            </CollapsibleSection>
+  
             <CollapsibleSection title="Adjustment Period Progression">
               <PeriodProgression {...data.adjustmentPeriod} />
             </CollapsibleSection>
-
+  
             <CollapsibleSection title="Issuance Halving Progression">
               <HalvingProgression {...data.halving} />
             </CollapsibleSection>
