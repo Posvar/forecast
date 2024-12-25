@@ -63,37 +63,30 @@ export function PastIssuance() {
           const isActive = activeTooltip === index;
 
           return (
-            <TooltipProvider key={index}>
-              <Tooltip open={isActive} onOpenChange={() => setActiveTooltip(null)}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
-                    style={{ backgroundColor: getColor(period.fctMinted) }}
-                    onClick={() => handleTooltipToggle(index)} // Handle touch interaction
-                  >
-                    <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
-                      {(period['block-ending'] - 9999).toLocaleString()}
-                    </div>
-                    <div className={`text-right ${shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}`}>
-                      {period['block-ending'].toLocaleString()}
-                    </div>
+            <div key={index} className="relative">
+              <div
+                className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem]`}
+                style={{ backgroundColor: getColor(period.fctMinted) }}
+                onClick={() => handleTooltipToggle(index)} // Click to toggle tooltip
+              >
+                <div className={shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}>
+                  {(period['block-ending'] - 9999).toLocaleString()}
+                </div>
+                <div className={`text-right ${shouldUseWhiteText(period.fctMinted) ? 'text-white' : 'text-black'}`}>
+                  {period['block-ending'].toLocaleString()}
+                </div>
+              </div>
+              {isActive && (
+                <div className="absolute z-10 bg-white border border-black shadow-lg text-sm rounded p-2 top-full mt-1">
+                  <div className="space-y-1">
+                    <div>Start Block: {(period['block-ending'] - 9999).toLocaleString()}</div>
+                    <div>End Block: {period['block-ending'].toLocaleString()}</div>
+                    <div>Issuance Rate: {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
+                    <div>FCT Issued: {Math.round(period.fctMinted).toLocaleString()} FCT</div>
                   </div>
-                </TooltipTrigger>
-                {isActive && (
-                  <TooltipContent
-                    side="top"
-                    className="bg-white border border-black shadow-lg text-sm rounded p-2"
-                  >
-                    <div className="space-y-1">
-                      <div>Start Block: {(period['block-ending'] - 9999).toLocaleString()}</div>
-                      <div>End Block: {period['block-ending'].toLocaleString()}</div>
-                      <div>Issuance Rate: {Math.round(period.fctMintRate / 1e9).toLocaleString()} gwei</div>
-                      <div>FCT Issued: {Math.round(period.fctMinted).toLocaleString()} FCT</div>
-                    </div>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
