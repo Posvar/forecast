@@ -121,7 +121,7 @@ export function PastIssuance({
       <TooltipProvider key={index}>
         <Tooltip open={openTooltipIndex === index}>
           <TooltipTrigger
-            className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem] tooltip-trigger ${
+            className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 tooltip-trigger ${
               isCurrent ? 'border-2 border-yellow-400 pulse-border' : ''
             }`}
             style={{ backgroundColor: getColor(fctMinted) }}
@@ -130,11 +130,13 @@ export function PastIssuance({
               setOpenTooltipIndex(openTooltipIndex === index ? null : index);
             }}
           >
-            <div className={shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}>
-              {startBlock.toLocaleString()}
-            </div>
-            <div className={`text-right ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
-              {endBlock.toLocaleString()}
+            <div className="flex flex-col justify-between h-full text-[0.65rem]">
+              <div className={`text-left ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
+                {startBlock.toLocaleString()}
+              </div>
+              <div className={`self-end ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
+                {endBlock.toLocaleString()}
+              </div>
             </div>
             {isCurrent && (
               <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
