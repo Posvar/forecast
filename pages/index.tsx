@@ -9,6 +9,7 @@ import { AboutTooltip } from '@/components/about-tooltip'
 import { HalvingProgression } from '@/components/halving-progression'
 import { PeriodProgression } from '@/components/period-progression'
 import { CurrentIssuance } from '@/components/current-issuance'
+import { TotalIssuance } from '@/components/total-issuance'
 import { ForecastedIssuance } from '@/components/forecasted-issuance'
 import Image from 'next/image'
 
@@ -297,20 +298,29 @@ export default function Component() {
                 />
               </div>
             </CollapsibleSection>
-  
-            <CollapsibleSection title="Forecasted FCT Issuance">
-              <ForecastedIssuance
-                forecastedRate={data.issuance.forecastedRate}
-                l1Gas={data.issuance.l1Gas}
-                ethPrice={data.issuance.ethPrice}
-                changePercent={data.issuance.changePercent}
-              />
-            </CollapsibleSection>
+
+                        <CollapsibleSection title="Forecasted FCT Issuance">
+                          <ForecastedIssuance
+                            forecastedRate={data.issuance.forecastedRate}
+                            l1Gas={data.issuance.l1Gas}
+                            ethPrice={data.issuance.ethPrice}
+                            changePercent={data.issuance.changePercent}
+                          />
+                        </CollapsibleSection>
   
             <CollapsibleSection title="Past FCT Issuance">
-              <PastIssuance />
+              <PastIssuance
+                currentStartBlock={data.adjustmentPeriod.startBlock}
+                currentEndBlock={data.adjustmentPeriod.endBlock}
+                currentIssuanceRate={data.issuance.current}
+                currentFctIssued={data.issuance.issued}
+              />
             </CollapsibleSection>
-  
+
+            <CollapsibleSection title="Total FCT Issuance">
+              <TotalIssuance currentPeriodIssuance={data.issuance.issued} />
+            </CollapsibleSection>
+
             <CollapsibleSection title="Adjustment Period Progression">
               <PeriodProgression {...data.adjustmentPeriod} />
             </CollapsibleSection>
