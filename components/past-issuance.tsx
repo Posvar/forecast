@@ -61,6 +61,7 @@ export function PastIssuance({
 }: PastIssuanceProps) {
   const [data, setData] = useState<AdjustmentPeriod[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [openTooltipIndex, setOpenTooltipIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,6 +83,19 @@ export function PastIssuance({
     fetchData();
   }, [currentFctIssued]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openTooltipIndex !== null && !(event.target as Element).closest('.tooltip-trigger')) {
+        setOpenTooltipIndex(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openTooltipIndex]);
+
   const renderBlock = (period: AdjustmentPeriod | 'current', index: number) => {
     let startBlock: number;
     let endBlock: number;
@@ -99,34 +113,37 @@ export function PastIssuance({
       startBlock = period['block-ending'] - BLOCKS_PER_PERIOD + 1;
       endBlock = period['block-ending'];
       fctMinted = period.fctMinted;
-      issuanceRate = period.fctMintRate;
+      // Convert WEI to GWEI for past blocks
+      issuanceRate = period.fctMintRate / 1e9;
     }
 
     return (
       <TooltipProvider key={index}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem] ${
-                isCurrent ? 'border-2 border-yellow-400 pulse-border' : ''
-              }`}
-              style={{ backgroundColor: getColor(fctMinted) }}
-            >
-              <div className={shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}>
-                {startBlock.toLocaleString()}
-              </div>
-              <div className={`text-right ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
-                {endBlock.toLocaleString()}
-              </div>
-              {isCurrent && (
-                <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-              )}
+        <Tooltip open={openTooltipIndex === index}>
+          <TooltipTrigger
+            className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 flex flex-col justify-between text-[0.65rem] tooltip-trigger ${
+              isCurrent ? 'border-2 border-yellow-400 pulse-border' : ''
+            }`}
+            style={{ backgroundColor: getColor(fctMinted) }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenTooltipIndex(openTooltipIndex === index ? null : index);
+            }}
+          >
+            <div className={shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}>
+              {startBlock.toLocaleString()}
             </div>
+            <div className={`text-right ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
+              {endBlock.toLocaleString()}
+            </div>
+            {isCurrent && (
+              <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+            )}
           </TooltipTrigger>
           <TooltipContent side="top" className="bg-white">
-            <div className="space-y-1 text-center">
+            <div className="space-y-1 text-center text-xs">
               <div><b>Start Block:</b> {startBlock.toLocaleString()}</div>
-              <div><b>End Block:</b> {isCurrent ? 'In Progress' : endBlock.toLocaleString()}</div>
+              <div><b>End Block:</b> {isCurrent ? 'Pending' : endBlock.toLocaleString()}</div>
               <div><b>Issuance Rate:</b> {Math.round(issuanceRate).toLocaleString()} gwei</div>
               <div><b>FCT Issued:</b> {Math.round(fctMinted).toLocaleString()} FCT</div>
               {isCurrent && <div className="font-bold text-yellow-600">Current Period</div>}
@@ -145,7 +162,7 @@ export function PastIssuance({
 
     return Array.from({ length: numRows }).map((_, rowIndex) => (
       <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
-        {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period as AdjustmentPeriod | 'current', rowIndex * blocksPerRow + index))}
+        {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period, rowIndex * blocksPerRow + index))}
       </div>
     ));
   };
@@ -161,7 +178,6 @@ export function PastIssuance({
         <p className="text-sm w-full">
           The heatmap below shows FCT issuance for the most recent Adjustment Periods, including the <span className="pulse-border inline-block">🟡</span>current period in progress, with lighter shades indicating lower issuance and darker purple shades indicating higher issuance.
         </p>
-        {/* Removed total issuance display */}
       </div>
       <div className="space-y-1">
         <div className="hidden md:block space-y-1">{renderBlocks(DESKTOP_BLOCKS_PER_ROW)}</div>
