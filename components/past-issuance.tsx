@@ -140,12 +140,12 @@ export function PastIssuance({
   const renderBlocks = (blocksPerRow: number) => {
     if (!data.length) return null;
 
-    const allPeriods = [...data, 'current'];
+    const allPeriods: (AdjustmentPeriod | 'current')[] = [...data, 'current'];
     const numRows = Math.ceil(allPeriods.length / blocksPerRow);
 
     return Array.from({ length: numRows }).map((_, rowIndex) => (
       <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
-        {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period, rowIndex * blocksPerRow + index))}
+        {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period as AdjustmentPeriod | 'current', rowIndex * blocksPerRow + index))}
       </div>
     ));
   };
@@ -192,4 +192,3 @@ export function PastIssuance({
     </div>
   );
 }
-
