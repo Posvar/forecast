@@ -121,7 +121,7 @@ export function PastIssuance({
       <TooltipProvider key={index}>
         <Tooltip open={openTooltipIndex === index}>
           <TooltipTrigger
-            className={`relative aspect-square w-full rounded-lg cursor-pointer transition-colors p-2 tooltip-trigger ${
+            className={`relative w-full rounded-lg cursor-pointer transition-colors tooltip-trigger ${
               isCurrent ? 'border-2 border-yellow-400 pulse-border' : ''
             }`}
             style={{ backgroundColor: getColor(fctMinted) }}
@@ -130,19 +130,23 @@ export function PastIssuance({
               setOpenTooltipIndex(prevIndex => prevIndex === index ? null : index);
             }}
           >
-            <div className="flex flex-col justify-between h-full text-[0.65rem]">
-              <div className={`text-left ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
-                {startBlock.toLocaleString()}
-              </div>
-              <div className={`self-end ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
-                {endBlock.toLocaleString()}
+            <div className="pb-[100%] relative">
+              <div className="absolute inset-0 p-2">
+                <div className="flex flex-col justify-between h-full text-[0.65rem]">
+                  <div className={`text-left ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
+                    {startBlock.toLocaleString()}
+                  </div>
+                  <div className={`self-end ${shouldUseWhiteText(fctMinted) ? 'text-white' : 'text-black'}`}>
+                    {endBlock.toLocaleString()}
+                  </div>
+                </div>
+                {isCurrent && (
+                  <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                )}
               </div>
             </div>
-            {isCurrent && (
-              <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-            )}
           </TooltipTrigger>
-          <TooltipContent side="top" align="center" sideOffset={-80} className="bg-white z-50">
+          <TooltipContent side="top" align="center" sideOffset={5} className="bg-white z-50 shadow-md">
             <div className="space-y-1 text-center text-xs">
               <div><b>Start Block:</b> {startBlock.toLocaleString()}</div>
               <div><b>End Block:</b> {isCurrent ? 'Pending' : endBlock.toLocaleString()}</div>
@@ -163,7 +167,7 @@ export function PastIssuance({
     const numRows = Math.ceil(allPeriods.length / blocksPerRow);
 
     return Array.from({ length: numRows }).map((_, rowIndex) => (
-      <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1 [&>*]:aspect-square`}>
+      <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
         {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period, rowIndex * blocksPerRow + index))}
       </div>
     ));
@@ -210,4 +214,3 @@ export function PastIssuance({
     </div>
   );
 }
-
