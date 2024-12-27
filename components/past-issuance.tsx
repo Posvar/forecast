@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -85,7 +85,7 @@ export function PastIssuance({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openTooltipIndex !== null && !(event.target as Element).closest('.tooltip-trigger')) {
+      if (!(event.target as Element).closest('.tooltip-trigger')) {
         setOpenTooltipIndex(null);
       }
     };
@@ -94,7 +94,7 @@ export function PastIssuance({
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [openTooltipIndex]);
+  }, []);
 
   const renderBlock = (period: AdjustmentPeriod | 'current', index: number) => {
     let startBlock: number;
@@ -127,7 +127,7 @@ export function PastIssuance({
             style={{ backgroundColor: getColor(fctMinted) }}
             onClick={(e) => {
               e.stopPropagation();
-              setOpenTooltipIndex(openTooltipIndex === index ? null : index);
+              setOpenTooltipIndex(prevIndex => prevIndex === index ? null : index);
             }}
           >
             <div className="flex flex-col justify-between h-full text-[0.65rem]">
@@ -142,7 +142,7 @@ export function PastIssuance({
               <div className="absolute top-2 right-2 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
             )}
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-white">
+          <TooltipContent side="top" align="center" sideOffset={-80} className="bg-white z-50">
             <div className="space-y-1 text-center text-xs">
               <div><b>Start Block:</b> {startBlock.toLocaleString()}</div>
               <div><b>End Block:</b> {isCurrent ? 'Pending' : endBlock.toLocaleString()}</div>
@@ -163,7 +163,7 @@ export function PastIssuance({
     const numRows = Math.ceil(allPeriods.length / blocksPerRow);
 
     return Array.from({ length: numRows }).map((_, rowIndex) => (
-      <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1`}>
+      <div key={rowIndex} className={`grid ${blocksPerRow === 10 ? 'grid-cols-10' : 'grid-cols-5'} gap-1 [&>*]:aspect-square`}>
         {allPeriods.slice(rowIndex * blocksPerRow, (rowIndex + 1) * blocksPerRow).map((period, index) => renderBlock(period, rowIndex * blocksPerRow + index))}
       </div>
     ));
@@ -210,3 +210,4 @@ export function PastIssuance({
     </div>
   );
 }
+
