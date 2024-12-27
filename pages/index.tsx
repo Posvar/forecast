@@ -56,7 +56,7 @@ interface ForecastData {
     blocksElapsed: number
     blocksRemaining: number
     currentBlock: number
-    currentTarget: number // Add this line
+    currentTarget: number
   }
   issuance: {
     current: number
@@ -103,16 +103,9 @@ export default function Component() {
   }
 
   const calculateMiningCost = (l1Gas: number, issuanceRate: number, ethPrice: number) => {
-    // Convert L1 gas price from gwei to ETH
     const ethCostPerGas = l1Gas * 1e-9
-    
-    // Convert issuance rate from gwei to FCT
     const fctPerGas = issuanceRate * 1e-9
-    
-    // Calculate ETH cost per FCT
     const ethCostPerFCT = ethCostPerGas / fctPerGas
-    
-    // Convert to USD
     return ethCostPerFCT * ethPrice
   }
 
@@ -158,12 +151,10 @@ export default function Component() {
       const targetFCT = calculateTargetFCT(totalBlocks)
       const { fctMintedSoFar, currentMintRate } = contractData
 
-      // Calculate mining cost
       const miningCostUSD = l1Gas !== undefined && ethPrice !== undefined
         ? calculateMiningCost(l1Gas, currentMintRate, ethPrice)
         : undefined
 
-      // Calculate current adjustment period
       const currentPeriod = Math.floor(totalBlocks / 10000) + 1
       const periodStartBlock = (currentPeriod - 1) * 10000
       const periodEndBlock = periodStartBlock + 9999
@@ -172,12 +163,10 @@ export default function Component() {
 
       const forecastedIssuance = Math.round((fctMintedSoFar / blocksElapsedInPeriod) * 10000)
 
-      // Forecasted mint rate
       let forecastedMintRate = Math.round(
         currentMintRate * (targetFCT / forecastedIssuance)
       )
 
-      // Apply bounds
       forecastedMintRate = Math.min(
         Math.max(forecastedMintRate, Math.round(currentMintRate * 0.5)),
         Math.min(MAX_MINT_RATE, currentMintRate * 2)
@@ -202,7 +191,7 @@ export default function Component() {
           startBlock: periodStartBlock,
           endBlock: periodEndBlock,
           blocksElapsed: blocksElapsedInPeriod,
-          currentTarget: targetFCT, // Add this line
+          currentTarget: targetFCT,
           blocksRemaining,
           currentBlock: totalBlocks,
         },
@@ -299,14 +288,14 @@ export default function Component() {
               </div>
             </CollapsibleSection>
 
-                        <CollapsibleSection title="Forecasted FCT Issuance">
-                          <ForecastedIssuance
-                            forecastedRate={data.issuance.forecastedRate}
-                            l1Gas={data.issuance.l1Gas}
-                            ethPrice={data.issuance.ethPrice}
-                            changePercent={data.issuance.changePercent}
-                          />
-                        </CollapsibleSection>
+            <CollapsibleSection title="Forecasted FCT Issuance">
+              <ForecastedIssuance
+                forecastedRate={data.issuance.forecastedRate}
+                l1Gas={data.issuance.l1Gas}
+                ethPrice={data.issuance.ethPrice}
+                changePercent={data.issuance.changePercent}
+              />
+            </CollapsibleSection>
   
             <CollapsibleSection title="Past FCT Issuance">
               <PastIssuance
@@ -318,7 +307,10 @@ export default function Component() {
             </CollapsibleSection>
 
             <CollapsibleSection title="Total FCT Issuance">
-              <TotalIssuance currentPeriodIssuance={data.issuance.issued} />
+              <TotalIssuance 
+                currentPeriodIssuance={data.issuance.issued} 
+                currentEndBlock={data.adjustmentPeriod.endBlock}
+              />
             </CollapsibleSection>
 
             <CollapsibleSection title="Adjustment Period Progression">
