@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAdjustmentPeriodCheck } from '../utils/adjustmentPeriodCheck';
 
 const pulseKeyframes = `
   @keyframes pulse-border {
@@ -62,12 +63,17 @@ export function PastIssuance({
   const [data, setData] = useState<AdjustmentPeriod[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [openTooltipIndex, setOpenTooltipIndex] = useState<number | null>(null);
+  const shouldRefetch = useAdjustmentPeriodCheck(currentEndBlock);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          'https://ittybits.blob.core.windows.net/ittybits-assets/adjustment_periods.json.gz'
+          'https://ittybits.blob.core.windows.net/ittybits-assets/adjustment_periods.json.gz',
+          {
+            headers: { 'Cache-Control': 'no-cache' },
+            params: { _: new Date().getTime() }
+          }
         );
         const sortedData = response.data.sort(
           (a: AdjustmentPeriod, b: AdjustmentPeriod) =>
@@ -80,8 +86,10 @@ export function PastIssuance({
       }
     };
 
-    fetchData();
-  }, [currentFctIssued]);
+    if (shouldRefetch) {
+      fetchData();
+    }
+  }, [currentFctIssued, shouldRefetch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -146,7 +154,7 @@ export function PastIssuance({
               </div>
             </div>
           </TooltipTrigger>
-          <TooltipContent side="top" align="center" sideOffset={5} className="bg-white z-50 shadow-md">
+          <TooltipContent side="top" align="center" sideOffset={-80} className="bg-white z-50">
             <div className="space-y-1 text-center text-xs">
               <div><b>Start Block:</b> {startBlock.toLocaleString()}</div>
               <div><b>End Block:</b> {isCurrent ? 'Pending' : endBlock.toLocaleString()}</div>

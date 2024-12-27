@@ -1,18 +1,25 @@
 import React from 'react'
+import { useAdjustmentPeriodCheck } from '../utils/adjustmentPeriodCheck';
 
 interface TotalIssuanceProps {
   currentPeriodIssuance: number
+  currentEndBlock: number
 }
 
-export function TotalIssuance({ currentPeriodIssuance }: TotalIssuanceProps) {
+export function TotalIssuance({ currentPeriodIssuance, currentEndBlock }: TotalIssuanceProps) {
   const [totalPastIssuance, setTotalPastIssuance] = React.useState<number>(0)
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const shouldRefetch = useAdjustmentPeriodCheck(currentEndBlock);
+  const initialFetchRef = React.useRef(false);
 
   React.useEffect(() => {
     const fetchPastIssuance = async () => {
       try {
-        const response = await fetch('https://ittybits.blob.core.windows.net/ittybits-assets/adjustment_periods.json.gz')
+        const response = await fetch('https://ittybits.blob.core.windows.net/ittybits-assets/adjustment_periods.json.gz', {
+          headers: { 'Cache-Control': 'no-cache' },
+          cache: 'no-store'
+        })
         if (!response.ok) throw new Error('Failed to fetch data')
         const data = await response.json()
         
@@ -26,8 +33,12 @@ export function TotalIssuance({ currentPeriodIssuance }: TotalIssuanceProps) {
       }
     }
 
-    fetchPastIssuance()
-  }, [])
+    // Fetch on initial mount or when shouldRefetch is true
+    if (!initialFetchRef.current || shouldRefetch) {
+      initialFetchRef.current = true;
+      fetchPastIssuance();
+    }
+  }, [shouldRefetch])
 
   if (isLoading) {
     return <div className="text-sm text-gray-500">Loading total issuance data...</div>
@@ -39,8 +50,6 @@ export function TotalIssuance({ currentPeriodIssuance }: TotalIssuanceProps) {
 
   const totalIssuance = totalPastIssuance + currentPeriodIssuance
   const formattedTotal = Math.round(totalIssuance).toLocaleString()
-  const pastIssuancePercentage = ((totalPastIssuance / totalIssuance) * 100).toFixed(1)
-  const currentPeriodPercentage = ((currentPeriodIssuance / totalIssuance) * 100).toFixed(1)
 
   return (
     <div className="space-y-4">
@@ -61,4 +70,3 @@ export function TotalIssuance({ currentPeriodIssuance }: TotalIssuanceProps) {
     </div>
   )
 }
-
